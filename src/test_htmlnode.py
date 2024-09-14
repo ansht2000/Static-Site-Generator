@@ -2,6 +2,7 @@ import unittest
 from htmlnode import HTMLNode
 
 class TestHTMLNode(unittest.TestCase):
+    
     def test_eq(self):
         node = HTMLNode("<p>", "Hello", ["hello"], {"test": "testing"})
         node2 = HTMLNode("<p>", "Hello", ["hello"], {"test": "testing"})
