@@ -1,5 +1,5 @@
 class HTMLNode:
-    
+
     def __init__(self, tag=None, value=None, children=None, props=None):
         self.tag = tag
         self.value = value
@@ -24,4 +24,4 @@ class HTMLNode:
         props_string = ""
         for k, v in self.props.items():
             props_string += f" {k}=\"{v}\""
-        return props_string.lstrip()
+        return props_string
