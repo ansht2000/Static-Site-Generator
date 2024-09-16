@@ -16,6 +16,9 @@ class LeafNode(HTMLNode):
         props_string = ""
         if self.props is not None:
             props_string = super().props_to_html()
+        # MAY NEED TO REMOVE
+        if self.tag == "img":
+            return f"<{self.tag}{props_string}/>"
         return f"<{self.tag}{props_string}>{self.value}</{self.tag}>"
 
         
