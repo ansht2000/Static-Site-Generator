@@ -84,6 +84,16 @@ class TestConverter(unittest.TestCase):
             TextNode(" word ", "text"),
             TextNode("italic", "italic"),
         ], new_nodes)
+        node = node = TextNode("This is **bold** text with an **bold** word **bold**", "text")
+        new_nodes = split_nodes_delimiter([node], "**", "bold")
+        self.assertEqual([
+            TextNode("This is ", "text"),
+            TextNode("bold", "bold"),
+            TextNode(" text with an ", "text"),
+            TextNode("bold", "bold"),
+            TextNode(" word ", "text"),
+            TextNode("bold", "bold"),
+        ], new_nodes)
 
 
 
