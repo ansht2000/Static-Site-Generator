@@ -47,6 +47,19 @@ class TestConverter(unittest.TestCase):
             text_node_to_html_node(node)
         self.assertEqual(str(context.exception), "Invalid or unimplemented text node type")
 
+    def test_split_nodes_invalid_delimiter(self):
+        node = TextNode("This is invalid &text&", "boop")
+        self.assertRaises(
+            Exception,
+            split_nodes_delimiter,
+            node,
+            "&",
+            "boop"
+        )
+        with self.assertRaises(Exception) as context:
+            split_nodes_delimiter(node, "&", "boop")
+        self.assertEqual(str(context.exception), "Invalid markdown syntax")
+
     def test_split_nodes_delimiter(self):
         node1 = TextNode("This is text with a `code block` word", "text")
         new_nodes1 = split_nodes_delimiter([node1], "`", "code")
@@ -55,27 +68,27 @@ class TestConverter(unittest.TestCase):
             TextNode("code block", "code"),
             TextNode(" word", "text"),
         ], new_nodes1)
-        node = TextNode("This is text with an *italic* word", "text")
-        new_nodes = split_nodes_delimiter([node], "*", "italic")
+        node2 = TextNode("This is text with an *italic* word", "text")
+        new_nodes2 = split_nodes_delimiter([node2], "*", "italic")
         self.assertEqual([
             TextNode("This is text with an ", "text"),
             TextNode("italic", "italic"),
             TextNode(" word", "text"),
-        ], new_nodes)
-        node = TextNode("This is text with an *italic*", "text")
-        new_nodes = split_nodes_delimiter([node], "*", "italic")
+        ], new_nodes2)
+        node3 = TextNode("This is text with an *italic*", "text")
+        new_nodes3 = split_nodes_delimiter([node3], "*", "italic")
         self.assertEqual([
             TextNode("This is text with an ", "text"),
             TextNode("italic", "italic"),
-        ], new_nodes)
-        node = TextNode("*italic* This is text with an", "text")
-        new_nodes = split_nodes_delimiter([node], "*", "italic")
+        ], new_nodes3)
+        node4 = TextNode("*italic* This is text with an", "text")
+        new_nodes4 = split_nodes_delimiter([node4], "*", "italic")
         self.assertEqual([
             TextNode("italic", "italic"),
             TextNode(" This is text with an", "text"),
-        ], new_nodes)
-        node = TextNode("This is *italic* text with an *italic* word *italic*", "text")
-        new_nodes = split_nodes_delimiter([node], "*", "italic")
+        ], new_nodes4)
+        node5 = TextNode("This is *italic* text with an *italic* word *italic*", "text")
+        new_nodes5 = split_nodes_delimiter([node5], "*", "italic")
         self.assertEqual([
             TextNode("This is ", "text"),
             TextNode("italic", "italic"),
@@ -83,9 +96,9 @@ class TestConverter(unittest.TestCase):
             TextNode("italic", "italic"),
             TextNode(" word ", "text"),
             TextNode("italic", "italic"),
-        ], new_nodes)
-        node = TextNode("This is **bold** text with an **bold** word **bold**", "text")
-        new_nodes = split_nodes_delimiter([node], "**", "bold")
+        ], new_nodes5)
+        node6 = TextNode("This is **bold** text with an **bold** word **bold**", "text")
+        new_nodes6 = split_nodes_delimiter([node6], "**", "bold")
         self.assertEqual([
             TextNode("This is ", "text"),
             TextNode("bold", "bold"),
@@ -93,8 +106,21 @@ class TestConverter(unittest.TestCase):
             TextNode("bold", "bold"),
             TextNode(" word ", "text"),
             TextNode("bold", "bold"),
-        ], new_nodes)
-        node_list = []
+        ], new_nodes6)
+        node_list = [TextNode("bold", "bold"), node6, TextNode("this is more text", "text")]
+        new_nodes7 = split_nodes_delimiter(node_list, "**", "bold")
+        self.assertEqual([
+            TextNode("bold", "bold", None),
+            TextNode("This is ", "text", None),
+            TextNode("bold", "bold", None),
+            TextNode(" text with an ", "text", None),
+            TextNode("bold", "bold", None),
+            TextNode(" word ", "text", None),
+            TextNode("bold", "bold", None),
+            TextNode("this is more text", "text", None)
+        ], new_nodes7)
+
+    
 
 
 
