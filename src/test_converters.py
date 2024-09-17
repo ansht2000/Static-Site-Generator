@@ -74,6 +74,16 @@ class TestConverter(unittest.TestCase):
             TextNode("italic", "italic"),
             TextNode(" This is text with an", "text"),
         ], new_nodes)
+        node = node = TextNode("This is *italic* text with an *italic* word *italic*", "text")
+        new_nodes = split_nodes_delimiter([node], "*", "italic")
+        self.assertEqual([
+            TextNode("This is ", "text"),
+            TextNode("italic", "italic"),
+            TextNode(" text with an ", "text"),
+            TextNode("italic", "italic"),
+            TextNode(" word ", "text"),
+            TextNode("italic", "italic"),
+        ], new_nodes)
 
 
 
