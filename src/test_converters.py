@@ -48,33 +48,33 @@ class TestConverter(unittest.TestCase):
         self.assertEqual(str(context.exception), "Invalid or unimplemented text node type")
 
     def test_split_nodes_delimiter(self):
-        node = node = TextNode("This is text with a `code block` word", "text")
-        new_nodes = split_nodes_delimiter([node], "`", "code")
+        node1 = TextNode("This is text with a `code block` word", "text")
+        new_nodes1 = split_nodes_delimiter([node1], "`", "code")
         self.assertEqual([
             TextNode("This is text with a ", "text"),
             TextNode("code block", "code"),
             TextNode(" word", "text"),
-        ], new_nodes)
-        node = node = TextNode("This is text with an *italic* word", "text")
+        ], new_nodes1)
+        node = TextNode("This is text with an *italic* word", "text")
         new_nodes = split_nodes_delimiter([node], "*", "italic")
         self.assertEqual([
             TextNode("This is text with an ", "text"),
             TextNode("italic", "italic"),
             TextNode(" word", "text"),
         ], new_nodes)
-        node = node = TextNode("This is text with an *italic*", "text")
+        node = TextNode("This is text with an *italic*", "text")
         new_nodes = split_nodes_delimiter([node], "*", "italic")
         self.assertEqual([
             TextNode("This is text with an ", "text"),
             TextNode("italic", "italic"),
         ], new_nodes)
-        node = node = TextNode("*italic* This is text with an", "text")
+        node = TextNode("*italic* This is text with an", "text")
         new_nodes = split_nodes_delimiter([node], "*", "italic")
         self.assertEqual([
             TextNode("italic", "italic"),
             TextNode(" This is text with an", "text"),
         ], new_nodes)
-        node = node = TextNode("This is *italic* text with an *italic* word *italic*", "text")
+        node = TextNode("This is *italic* text with an *italic* word *italic*", "text")
         new_nodes = split_nodes_delimiter([node], "*", "italic")
         self.assertEqual([
             TextNode("This is ", "text"),
@@ -84,7 +84,7 @@ class TestConverter(unittest.TestCase):
             TextNode(" word ", "text"),
             TextNode("italic", "italic"),
         ], new_nodes)
-        node = node = TextNode("This is **bold** text with an **bold** word **bold**", "text")
+        node = TextNode("This is **bold** text with an **bold** word **bold**", "text")
         new_nodes = split_nodes_delimiter([node], "**", "bold")
         self.assertEqual([
             TextNode("This is ", "text"),
@@ -94,6 +94,7 @@ class TestConverter(unittest.TestCase):
             TextNode(" word ", "text"),
             TextNode("bold", "bold"),
         ], new_nodes)
+        node_list = []
 
 
 

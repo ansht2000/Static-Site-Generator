@@ -47,6 +47,9 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
     new_nodes = []
     for node in old_nodes:
         node_text = node.text
+        if node.text_type != "text":
+            new_nodes.append(TextNode(node_text, node.text_type))
+            continue
         split_nodes = node_text.split(delimiter)
         text_nodes = map(
                 lambda x: TextNode(x, "text")
