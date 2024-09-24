@@ -182,6 +182,38 @@ class TestConverter(unittest.TestCase):
             TextNode("link", text_type_link, "https://boot.dev"),
         ], nodes)
 
+    def test_markdown_to_blocks(self):
+        markdown = """# This is a heading
+
+                        This is a paragraph of text. It has some **bold** and *italic* words inside of it.
+
+                        * This is the first list item in a list block
+                        * This is a list item
+                        * This is another list item"""
+        block_list = markdown_to_blocks(markdown)
+        self.assertEqual([
+            "# This is a heading",
+            "This is a paragraph of text. It has some **bold** and *italic* words inside of it.",
+            "* This is the first list item in a list block\n* This is a list item\n* This is another list item"
+            ], block_list)
+        markdown2 = """# This is a heading
+                       # with two lines in it
+
+                        This is a paragraph of text. It has some **bold** and *italic* words inside of it.
+                        This paragraph has two lines.
+                        Three lines even!
+
+                        * This is the first list item in a list block
+                        * This is a list item
+                        * This is another list item
+                        * This is another list item"""
+        block_list2 = markdown_to_blocks(markdown2)
+        self.assertEqual([
+            "# This is a heading\n# with two lines in it",
+            "This is a paragraph of text. It has some **bold** and *italic* words inside of it.\nThis paragraph has two lines.\nThree lines even!",
+            "* This is the first list item in a list block\n* This is a list item\n* This is another list item\n* This is another list item"
+        ], block_list2)
+
 
 if __name__ == "__main__":
     unittest.main()

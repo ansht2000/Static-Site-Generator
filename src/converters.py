@@ -9,6 +9,7 @@ from textnode import (
 )
 from leafnode import LeafNode
 import re
+from functools import reduce
 
 def text_node_to_html_node(text_node: TextNode):
     text_type = text_node.text_type
@@ -101,4 +102,7 @@ def text_to_textnodes(text):
     new_nodes = split_nodes_image_link(new_nodes, text_type_link)
     return new_nodes
 
-        
+def markdown_to_blocks(markdown):
+    block_list = list(filter(lambda x: x != "", markdown.split("\n\n")))
+    block_list = list(map(lambda x: "\n".join(list(map(lambda y: y.strip(), x.split("\n")))), block_list))
+    return block_list
