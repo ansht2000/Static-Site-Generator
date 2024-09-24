@@ -203,6 +203,8 @@ class TestConverter(unittest.TestCase):
                         This paragraph has two lines.
                         Three lines even!
 
+                        
+
                         * This is the first list item in a list block
                         * This is a list item
                         * This is another list item

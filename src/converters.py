@@ -103,6 +103,6 @@ def text_to_textnodes(text):
     return new_nodes
 
 def markdown_to_blocks(markdown):
-    block_list = list(filter(lambda x: x != "", markdown.split("\n\n")))
-    block_list = list(map(lambda x: "\n".join(list(map(lambda y: y.strip(), x.split("\n")))), block_list))
+    block_list = list(map(lambda x: "\n".join(list(map(lambda y: y.strip(), x.split("\n")))), markdown.split("\n\n")))
+    block_list = list(filter(lambda x: x != "", block_list))
     return block_list
