@@ -1,4 +1,12 @@
-from textnode import TextNode
+from textnode import (
+    TextNode,
+    text_type_text,
+    text_type_bold,
+    text_type_italic,
+    text_type_code,
+    text_type_link,
+    text_type_image,
+)
 from leafnode import LeafNode
 import re
 
@@ -30,12 +38,13 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
     new_nodes = []
     for node in old_nodes:
         node_text = node.text
-        if node.text_type != "text":
+
+        if node.text_type != text_type_text:
             new_nodes.append(TextNode(node_text, node.text_type))
             continue
         split_nodes = node_text.split(delimiter)
         text_nodes = map(
-                lambda x: TextNode(x, "text")
+                lambda x: TextNode(x, text_type_text)
                 if (split_nodes.index(x) % 2 == 0)
                 else TextNode(x, text_type), split_nodes
         )
@@ -50,30 +59,46 @@ def extract_markdown_links(text):
     # captured exclamation marks in the returned list
     return re.findall(r"(?<!!)\[(.*?)\]\((.*?)\)", text)
 
-def split_nodes_image(old_nodes):
+def split_nodes_image_link(old_nodes, type):
     new_nodes = []
     for node in old_nodes:
+        if node.text_type != text_type_text:
+            new_nodes.append(node)
+            continue
         node_text = node.text
-        image_list = extract_markdown_images(node_text)
-        for img_tuple in image_list:
-            img_text = f"![{img_tuple[0]}]({img_tuple[1]})"
-            split_text = node_text.split(img_text)
-            new_nodes.append(TextNode(split_text[0], "text"))
-            new_nodes.append(TextNode(img_tuple[0], "image", img_tuple[1]))
+        extracted_list = []
+        match type:
+            case "image":
+                extracted_list = extract_markdown_images(node_text)
+            case "link":
+                extracted_list = extract_markdown_links(node_text)
+        if len(extracted_list) == 0:
+            new_nodes.append(node)
+            continue
+        for extracted_tuple in extracted_list:
+            match type:
+                case "image":
+                    extracted_text = f"![{extracted_tuple[0]}]({extracted_tuple[1]})"
+                case "link":
+                    extracted_text = f"[{extracted_tuple[0]}]({extracted_tuple[1]})"
+            split_text = node_text.split(extracted_text)
+            if len(split_text) != 2:
+                raise Exception("Invalid markdown, link section not closed")
+            if split_text[0] != "":
+                new_nodes.append(TextNode(split_text[0], text_type_text))
+            new_nodes.append(TextNode(extracted_tuple[0], type, extracted_tuple[1]))
             node_text = split_text[1]
+        if node_text != "":
+            new_nodes.append(TextNode(node_text, text_type_text))
     return new_nodes
 
-
-def split_nodes_link(old_nodes):
-    new_nodes = []
-    for node in old_nodes:
-        node_text = node.text
-        link_list = extract_markdown_links(node_text)
-        for link_tuple in link_list:
-            link_text = f"[{link_tuple[0]}]({link_tuple[1]})"
-            split_text = node_text.split(link_text)
-            new_nodes.append(TextNode(split_text[0], "text"))
-            new_nodes.append(TextNode(link_tuple[0], "link", link_tuple[1]))
-            node_text = split_text[1]
+def text_to_textnodes(text):
+    node = [TextNode(text, text_type_text)]
+    new_nodes = split_nodes_delimiter(node, "**", text_type_bold)
+    new_nodes = split_nodes_delimiter(new_nodes, "*", text_type_italic)
+    new_nodes = split_nodes_delimiter(new_nodes, "`", text_type_code)
+    new_nodes = split_nodes_image_link(new_nodes, text_type_image)
+    new_nodes = split_nodes_image_link(new_nodes, text_type_link)
     return new_nodes
+
         

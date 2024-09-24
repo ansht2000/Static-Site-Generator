@@ -1,37 +1,45 @@
 import unittest
 from converters import *
-from textnode import TextNode
+from textnode import (
+    TextNode,
+    text_type_text,
+    text_type_bold,
+    text_type_italic,
+    text_type_code,
+    text_type_link,
+    text_type_image,
+)
 from leafnode import LeafNode
 
 class TestConverter(unittest.TestCase):
     
     def test_text_to_text(self):
-        node = TextNode("hello", "text")
+        node = TextNode("hello", text_type_text)
         leaf_node = text_node_to_html_node(node)
         self.assertEqual("hello", leaf_node.to_html())
 
     def test_text_to_bold_text(self):
-        node = TextNode("hello", "bold")
+        node = TextNode("hello", text_type_bold)
         leaf_node = text_node_to_html_node(node)
         self.assertEqual("<b>hello</b>", leaf_node.to_html())
     
     def test_text_to_italic_text(self):
-        node = TextNode("hello", "italic")
+        node = TextNode("hello", text_type_italic)
         leaf_node = text_node_to_html_node(node)
         self.assertEqual("<i>hello</i>", leaf_node.to_html())
     
     def test_text_to_code_text(self):
-        node = TextNode("hello", "code")
+        node = TextNode("hello", text_type_code)
         leaf_node = text_node_to_html_node(node)
         self.assertEqual("<code>hello</code>", leaf_node.to_html())
 
     def test_text_to_link_text(self):
-        node = TextNode("hello", "link", "http://balls.com")
+        node = TextNode("hello", text_type_link, "http://balls.com")
         leaf_node = text_node_to_html_node(node)
         self.assertEqual("<a href=\"http://balls.com\">hello</a>", leaf_node.to_html())
 
     def test_text_to_link_text(self):
-        node = TextNode("alt-text", "image", "http://balls.com")
+        node = TextNode("alt-text", text_type_image, "http://balls.com")
         leaf_node = text_node_to_html_node(node)
         self.assertEqual("<img src=\"http://balls.com\" alt=\"alt-text\"/>", leaf_node.to_html())
 
@@ -61,63 +69,63 @@ class TestConverter(unittest.TestCase):
         self.assertEqual(str(context.exception), "Invalid markdown syntax")
 
     def test_split_nodes_delimiter(self):
-        node1 = TextNode("This is text with a `code block` word", "text")
-        new_nodes1 = split_nodes_delimiter([node1], "`", "code")
+        node1 = TextNode("This is text with a `code block` word", text_type_text)
+        new_nodes1 = split_nodes_delimiter([node1], "`", text_type_code)
         self.assertEqual([
-            TextNode("This is text with a ", "text"),
-            TextNode("code block", "code"),
-            TextNode(" word", "text"),
+            TextNode("This is text with a ", text_type_text),
+            TextNode("code block", text_type_code),
+            TextNode(" word", text_type_text),
         ], new_nodes1)
-        node2 = TextNode("This is text with an *italic* word", "text")
-        new_nodes2 = split_nodes_delimiter([node2], "*", "italic")
+        node2 = TextNode("This is text with an *italic* word", text_type_text)
+        new_nodes2 = split_nodes_delimiter([node2], "*", text_type_italic)
         self.assertEqual([
-            TextNode("This is text with an ", "text"),
-            TextNode("italic", "italic"),
-            TextNode(" word", "text"),
+            TextNode("This is text with an ", text_type_text),
+            TextNode("italic", text_type_italic),
+            TextNode(" word", text_type_text),
         ], new_nodes2)
-        node3 = TextNode("This is text with an *italic*", "text")
-        new_nodes3 = split_nodes_delimiter([node3], "*", "italic")
+        node3 = TextNode("This is text with an *italic*", text_type_text)
+        new_nodes3 = split_nodes_delimiter([node3], "*", text_type_italic)
         self.assertEqual([
-            TextNode("This is text with an ", "text"),
-            TextNode("italic", "italic"),
+            TextNode("This is text with an ", text_type_text),
+            TextNode("italic", text_type_italic),
         ], new_nodes3)
-        node4 = TextNode("*italic* This is text with an", "text")
-        new_nodes4 = split_nodes_delimiter([node4], "*", "italic")
+        node4 = TextNode("*italic* This is text with an", text_type_text)
+        new_nodes4 = split_nodes_delimiter([node4], "*", text_type_italic)
         self.assertEqual([
-            TextNode("italic", "italic"),
-            TextNode(" This is text with an", "text"),
+            TextNode("italic", text_type_italic),
+            TextNode(" This is text with an", text_type_text),
         ], new_nodes4)
-        node5 = TextNode("This is *italic* text with an *italic* word *italic*", "text")
-        new_nodes5 = split_nodes_delimiter([node5], "*", "italic")
+        node5 = TextNode("This is *italic* text with an *italic* word *italic*", text_type_text)
+        new_nodes5 = split_nodes_delimiter([node5], "*", text_type_italic)
         self.assertEqual([
-            TextNode("This is ", "text"),
-            TextNode("italic", "italic"),
-            TextNode(" text with an ", "text"),
-            TextNode("italic", "italic"),
-            TextNode(" word ", "text"),
-            TextNode("italic", "italic"),
+            TextNode("This is ", text_type_text),
+            TextNode("italic", text_type_italic),
+            TextNode(" text with an ", text_type_text),
+            TextNode("italic", text_type_italic),
+            TextNode(" word ", text_type_text),
+            TextNode("italic", text_type_italic),
         ], new_nodes5)
-        node6 = TextNode("This is **bold** text with an **bold** word **bold**", "text")
-        new_nodes6 = split_nodes_delimiter([node6], "**", "bold")
+        node6 = TextNode("This is **bold** text with an **bold** word **bold**", text_type_text)
+        new_nodes6 = split_nodes_delimiter([node6], "**", text_type_bold)
         self.assertEqual([
-            TextNode("This is ", "text"),
-            TextNode("bold", "bold"),
-            TextNode(" text with an ", "text"),
-            TextNode("bold", "bold"),
-            TextNode(" word ", "text"),
-            TextNode("bold", "bold"),
+            TextNode("This is ", text_type_text),
+            TextNode("bold", text_type_bold),
+            TextNode(" text with an ", text_type_text),
+            TextNode("bold", text_type_bold),
+            TextNode(" word ", text_type_text),
+            TextNode("bold", text_type_bold),
         ], new_nodes6)
-        node_list = [TextNode("bold", "bold"), node6, TextNode("this is more text", "text")]
-        new_nodes7 = split_nodes_delimiter(node_list, "**", "bold")
+        node_list = [TextNode("bold", text_type_bold), node6, TextNode("this is more text", text_type_text)]
+        new_nodes7 = split_nodes_delimiter(node_list, "**", text_type_bold)
         self.assertEqual([
-            TextNode("bold", "bold", None),
-            TextNode("This is ", "text", None),
-            TextNode("bold", "bold", None),
-            TextNode(" text with an ", "text", None),
-            TextNode("bold", "bold", None),
-            TextNode(" word ", "text", None),
-            TextNode("bold", "bold", None),
-            TextNode("this is more text", "text", None)
+            TextNode("bold", text_type_bold, None),
+            TextNode("This is ", text_type_text, None),
+            TextNode("bold", text_type_bold, None),
+            TextNode(" text with an ", text_type_text, None),
+            TextNode("bold", text_type_bold, None),
+            TextNode(" word ", text_type_text, None),
+            TextNode("bold", text_type_bold, None),
+            TextNode("this is more text", text_type_text, None)
         ], new_nodes7)
 
     def test_extract_markdown_images_and_links(self):
@@ -131,33 +139,48 @@ class TestConverter(unittest.TestCase):
     def test_split_nodes_image(self):
         node = TextNode(
             "This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg) and ![troll face](https://i.imgur.com/fJRm4Vk.jpeg)",
-            "text",
+            text_type_text,
         )
-        new_nodes = split_nodes_image([node])
+        new_nodes = split_nodes_image_link([node], text_type_image)
         self.assertEqual([
-            TextNode("This is text with a ", "text", None),
-            TextNode("rick roll", "image", "https://i.imgur.com/aKaOqIh.gif"),
-            TextNode(" and ", "text", None),
-            TextNode("obi wan", "image", "https://i.imgur.com/fJRm4Vk.jpeg"),
-            TextNode(" and ", "text", None),
-            TextNode("troll face", "image", "https://i.imgur.com/fJRm4Vk.jpeg")
+            TextNode("This is text with a ", text_type_text, None),
+            TextNode("rick roll", text_type_image, "https://i.imgur.com/aKaOqIh.gif"),
+            TextNode(" and ", text_type_text, None),
+            TextNode("obi wan", text_type_image, "https://i.imgur.com/fJRm4Vk.jpeg"),
+            TextNode(" and ", text_type_text, None),
+            TextNode("troll face", text_type_image, "https://i.imgur.com/fJRm4Vk.jpeg")
         ], new_nodes)
 
     def test_split_nodes_link(self):
         node = TextNode(
             "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)",
-            "text",
+            text_type_text,
         )
-        new_nodes = split_nodes_link([node])
+        new_nodes = split_nodes_image_link([node], text_type_link)
         self.assertEqual([
-            TextNode("This is text with a link ", "text"),
-            TextNode("to boot dev", "link", "https://www.boot.dev"),
-            TextNode(" and ", "text"),
+            TextNode("This is text with a link ", text_type_text),
+            TextNode("to boot dev", text_type_link, "https://www.boot.dev"),
+            TextNode(" and ", text_type_text),
             TextNode(
-                "to youtube", "link", "https://www.youtube.com/@bootdotdev"
+                "to youtube", text_type_link, "https://www.youtube.com/@bootdotdev"
             ),
         ], new_nodes)
 
+    def test_text_to_textnodes(self):
+        text = "This is **text** with an *italic* word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
+        nodes = text_to_textnodes(text)
+        self.assertEqual([
+            TextNode("This is ", text_type_text),
+            TextNode("text", text_type_bold),
+            TextNode(" with an ", text_type_text),
+            TextNode("italic", text_type_italic),
+            TextNode(" word and a ", text_type_text),
+            TextNode("code block", text_type_code),
+            TextNode(" and an ", text_type_text),
+            TextNode("obi wan image", text_type_image, "https://i.imgur.com/fJRm4Vk.jpeg"),
+            TextNode(" and a ", text_type_text),
+            TextNode("link", text_type_link, "https://boot.dev"),
+        ], nodes)
 
 
 if __name__ == "__main__":
