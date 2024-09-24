@@ -120,7 +120,43 @@ class TestConverter(unittest.TestCase):
             TextNode("this is more text", "text", None)
         ], new_nodes7)
 
-    
+    def test_extract_markdown_images_and_links(self):
+        text1 = "This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)"
+        extracted_text1 = extract_markdown_images(text1)
+        self.assertEqual([("rick roll", "https://i.imgur.com/aKaOqIh.gif"), ("obi wan", "https://i.imgur.com/fJRm4Vk.jpeg")], extracted_text1)
+        text2 = "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)"
+        extracted_text2 = extract_markdown_links(text2)
+        self.assertEqual([("to boot dev", "https://www.boot.dev"), ("to youtube", "https://www.youtube.com/@bootdotdev")], extracted_text2)
+
+    def test_split_nodes_image(self):
+        node = TextNode(
+            "This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg) and ![troll face](https://i.imgur.com/fJRm4Vk.jpeg)",
+            "text",
+        )
+        new_nodes = split_nodes_image([node])
+        self.assertEqual([
+            TextNode("This is text with a ", "text", None),
+            TextNode("rick roll", "image", "https://i.imgur.com/aKaOqIh.gif"),
+            TextNode(" and ", "text", None),
+            TextNode("obi wan", "image", "https://i.imgur.com/fJRm4Vk.jpeg"),
+            TextNode(" and ", "text", None),
+            TextNode("troll face", "image", "https://i.imgur.com/fJRm4Vk.jpeg")
+        ], new_nodes)
+
+    def test_split_nodes_link(self):
+        node = TextNode(
+            "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)",
+            "text",
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertEqual([
+            TextNode("This is text with a link ", "text"),
+            TextNode("to boot dev", "link", "https://www.boot.dev"),
+            TextNode(" and ", "text"),
+            TextNode(
+                "to youtube", "link", "https://www.youtube.com/@bootdotdev"
+            ),
+        ], new_nodes)
 
 
 
