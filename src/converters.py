@@ -9,7 +9,13 @@ from textnode import (
 )
 from leafnode import LeafNode
 import re
-from functools import reduce
+
+block_type_paragraph = "paragraph"
+block_type_heading = "heading"
+block_type_code = "code"
+block_type_quote = "quote"
+block_type_unordered_list = "unordered_list"
+block_type_ordered_list = "ordered_list"
 
 def text_node_to_html_node(text_node: TextNode):
     text_type = text_node.text_type
@@ -56,7 +62,7 @@ def extract_markdown_images(text):
     return re.findall(r"!\[(.*?)\]\((.*?)\)", text)
 
 def extract_markdown_links(text):
-    # (?<!!) is a negative lookahead epxression to exclude
+    # (?<!!) is a negative lookbehind epxression to exclude
     # captured exclamation marks in the returned list
     return re.findall(r"(?<!!)\[(.*?)\]\((.*?)\)", text)
 
@@ -104,5 +110,39 @@ def text_to_textnodes(text):
 
 def markdown_to_blocks(markdown):
     block_list = list(map(lambda x: "\n".join(list(map(lambda y: y.strip(), x.split("\n")))), markdown.split("\n\n")))
-    block_list = list(filter(lambda x: x != "", block_list))
-    return block_list
+    return list(filter(lambda x: x != "", block_list))
+
+def check_indices_ordered_list(matches):
+    if len(matches) == 0:
+        return False
+    count = 1
+    for match in matches:
+        if int(match) == count:
+            count += 1
+            continue
+        else:
+            return False
+    return True
+
+def block_to_block_type(block):
+    heading_match = re.fullmatch(r"^#{1,6} .*", block)
+    code_match = re.fullmatch(r"^```.*```$", block)
+    quote_match = re.fullmatch(r"^(?:>.*\n)*(?:>.*)", block)
+    unordered_list_match = re.fullmatch(r"^(?:[*-] .*\n)*(?:[*-] .*)$", block)
+    ordered_list_match = check_indices_ordered_list(re.findall(r"(\d+). .*\n*", block))
+    if heading_match:
+        return block_type_heading
+    elif code_match:
+        return block_type_code
+    elif quote_match:
+        return block_type_quote
+    elif unordered_list_match:
+        return block_type_unordered_list
+    elif ordered_list_match:
+        return block_type_ordered_list
+    else:
+        return block_type_paragraph
+    
+def markdown_to_html_node(markdown):
+    pass
+    

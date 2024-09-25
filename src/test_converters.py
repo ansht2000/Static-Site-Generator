@@ -9,7 +9,14 @@ from textnode import (
     text_type_link,
     text_type_image,
 )
-from leafnode import LeafNode
+from converters import (
+    block_type_paragraph,
+    block_type_heading,
+    block_type_code,
+    block_type_quote,
+    block_type_unordered_list,
+    block_type_ordered_list,
+)
 
 class TestConverter(unittest.TestCase):
     
@@ -203,7 +210,7 @@ class TestConverter(unittest.TestCase):
                         This paragraph has two lines.
                         Three lines even!
 
-                        
+
 
                         * This is the first list item in a list block
                         * This is a list item
@@ -215,7 +222,120 @@ class TestConverter(unittest.TestCase):
             "This is a paragraph of text. It has some **bold** and *italic* words inside of it.\nThis paragraph has two lines.\nThree lines even!",
             "* This is the first list item in a list block\n* This is a list item\n* This is another list item\n* This is another list item"
         ], block_list2)
+        markdown3 = """# This is a heading
 
+                        This is a paragraph of text. It has some **bold** and *italic* words inside of it.
+                        This paragraph has two lines.
+                        Three lines even!
+
+
+
+                        * This is the first list item in a list block
+                        * This is a list item
+                        * This is another list item
+                        * This is another list item
+                        
+                        ```
+                        func main(){
+                            print("hello")
+                        }
+                        ```"""
+        block_list3 = markdown_to_blocks(markdown3)
+        for block in block_list3:
+            print(block)
+
+    def test_block_to_block_type_heading(self):
+        block = "Heading"
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type_paragraph, block_type)
+        block = "# Heading"
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type_heading, block_type)
+        block = "## Heading"
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type_heading, block_type)
+        block = "### Heading"
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type_heading, block_type)
+        block = "#### Heading"
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type_heading, block_type)
+        block = "##### Heading"
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type_heading, block_type)
+        block = "###### Heading"
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type_heading, block_type)
+        block = "####### Heading"
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type_paragraph, block_type)
+        block = "#######Heading"
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type_paragraph, block_type)
+    
+    def test_block_to_block_type_code(self):
+        block = "```code```"
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type_code, block_type)
+        block = "`code`"
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type_paragraph, block_type)
+        block = "``code``"
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type_paragraph, block_type)
+        block = "code"
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type_paragraph, block_type)
+        block = "```code\nmore code```"
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type_code, block_type)
+
+    def test_block_to_block_type_code(self):
+        block = ">quote"
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type_quote, block_type)
+        block = "> quote"
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type_quote, block_type)
+        block = ">"
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type_quote, block_type)
+        block = "> #quote"
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type_quote, block_type)
+        block = "quote"
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type_paragraph, block_type)
+        block = "> quote\n> more quote\n> even more quote\n>man this is a long quote"
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type_quote, block_type)
+
+    def test_block_to_block_type_unordered_list(self):
+        block = "* This is the first list item in a list block\n* This is a list item\n* This is another list item"
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type_unordered_list, block_type)
+        block = "* This is the first list item in a list block\n* This is a list item\n* This is another list item\n* This is another list item"
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type_unordered_list, block_type)
+        block = "random text"
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type_paragraph, block_type)
+
+    def test_block_to_block_type_ordered_list(self):
+        block = "1. first item\n2. second item\n3. third item"
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type_ordered_list, block_type)
+        block = "1. first item\n2. second item\n4. fourth item"
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type_paragraph, block_type)
+        block = "2. first item\n3. second item\n4. fourth item"
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type_paragraph, block_type)
+        block = "1. first item\n2. second item\n3. third item\n4. fourth item\n5. fifth item\n6. sixth item\n7. seventh item\n8. eighth item\n9. ninth item\n10. tenth item\n11. eleventh item"
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type_ordered_list, block_type)
+
+    
 
 if __name__ == "__main__":
     unittest.main()
