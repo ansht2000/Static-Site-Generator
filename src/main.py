@@ -1,7 +1,29 @@
-from textnode import TextNode
+import os
+import shutil
 
+dir_path_static = "./static"
+dir_path_public = "./public"
+
+def copy_content(src_dir_path, dest_dir_path):
+    if not os.path.exists(dest_dir_path):
+        os.mkdir(dest_dir_path)
+    for filename in os.listdir(src_dir_path):
+        from_path = os.path.join(src_dir_path, filename)
+        to_path = os.path.join(dest_dir_path, filename)
+        if os.path.isfile(from_path):
+            shutil.copy(from_path, to_path)
+        else:
+            copy_content(from_path, to_path)
+
+    
 def main():
-    text_node = TextNode("This is a text node", "bold", "https://www.boot.dev")
-    text_node_2 = TextNode("This is a text node", "italic", "https://www.boot.dev")
+    if not os.path.exists(dir_path_static):
+        raise ValueError("Static content could not be loaded: no static directory")
+    if not os.path.exists(dir_path_public):
+        os.mkdir(dir_path_public)
+    if len(os.listdir(dir_path_public)) != 0:
+        shutil.rmtree(dir_path_public)
+        os.mkdir(dir_path_public)
+    copy_content(dir_path_static, dir_path_public)
 
 main()
