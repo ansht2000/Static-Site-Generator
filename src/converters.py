@@ -8,6 +8,7 @@ from textnode import (
     text_type_image,
 )
 from leafnode import LeafNode
+from parentnode import ParentNode
 import re
 
 block_type_paragraph = "paragraph"
@@ -126,10 +127,10 @@ def check_indices_ordered_list(matches):
 
 def block_to_block_type(block):
     heading_match = re.fullmatch(r"^#{1,6} .*", block)
-    code_match = re.fullmatch(r"^```.*```$", block)
+    code_match = re.fullmatch(r"(?s)^```.*```$", block)
     quote_match = re.fullmatch(r"^(?:>.*\n)*(?:>.*)", block)
     unordered_list_match = re.fullmatch(r"^(?:[*-] .*\n)*(?:[*-] .*)$", block)
-    ordered_list_match = check_indices_ordered_list(re.findall(r"(\d+). .*\n*", block))
+    ordered_list_match = check_indices_ordered_list(re.findall(r"(\d+)\. .*\n*", block))
     if heading_match:
         return block_type_heading
     elif code_match:
@@ -143,6 +144,87 @@ def block_to_block_type(block):
     else:
         return block_type_paragraph
     
-def markdown_to_html_node(markdown):
-    pass
+def text_to_children(text):
+    child_nodes = []
+    text_nodes = text_to_textnodes(text)
+    for node in text_nodes:
+        child_nodes.append(text_node_to_html_node(node))
+    return child_nodes
+
+def ulist_to_html_node(block):
+    list_items = re.findall(r"(?:[*-] (.*)\n*)", block)
+    list_nodes = []
+    for item in list_items:
+        child_nodes = text_to_children(item)
+        list_nodes.append(ParentNode(tag="li", children=child_nodes))
+    return ParentNode(tag="ul", children=list_nodes)
+
+def olist_to_html_node(block):
+    list_items = re.findall(r"(?:\d+\. (.*)\n*)", block)
+    list_nodes = []
+    for item in list_items:
+        child_nodes = text_to_children(item)
+        list_nodes.append(ParentNode(tag="li", children=child_nodes))
+    return ParentNode(tag="ol", children=list_nodes)
+
+def quote_to_html_node(block):
+    quote_items = re.findall(r"(?:>(.*)\n*)", block)
+    quote_items = list(map(lambda x: x.strip(), quote_items))
+    quote_nodes = []
+    for item in quote_items:
+        child_nodes = text_to_children(item)
+        quote_nodes.append(ParentNode(tag="p", children=child_nodes))
+    return ParentNode(tag="blockquote", children=quote_nodes)
+
+def code_to_html_node(block):
+    code_items = re.findall(r"(?s)```(.*)```", block)
+    child_nodes = text_to_children(code_items[0])
+    code_nodes = ParentNode(tag="code", children=child_nodes)
+    return ParentNode("pre", [code_nodes])
+
+def heading_to_html_node(block):
+    heading_items = re.findall(r"#{1,6} .*", block)
+    level = 0
+    text = heading_items[0]
+    for char in text:
+        if char == "#":
+            level += 1
+        else:
+            break
+    text = heading_items[0][level + 1:]
+    child_nodes = text_to_children(text)
+    return ParentNode(tag=f"h{level}", children=child_nodes)
+
+def paragraph_to_html_node(block):
+    lines = block.split("\n")
+    paragraph = " ".join(lines)
+    child_nodes = text_to_children(paragraph)
+    return ParentNode("p", children=child_nodes)
     
+def markdown_to_html_node(markdown):
+    block_list = markdown_to_blocks(markdown)
+    block_nodes = []
+    for block in block_list:
+        block_type = block_to_block_type(block)
+        if block_type == block_type_unordered_list:
+            html_node = ulist_to_html_node(block)
+            block_nodes.append(html_node)
+        elif block_type == block_type_ordered_list:
+            html_node = olist_to_html_node(block)
+            block_nodes.append(html_node)
+        elif block_type == block_type_quote:
+            html_node = quote_to_html_node(block)
+            block_nodes.append(html_node)
+        elif block_type == block_type_code:
+            html_node = code_to_html_node(block)
+            block_nodes.append(html_node)
+        elif block_type == block_type_heading:
+            html_node = heading_to_html_node(block)
+            block_nodes.append(html_node)
+        elif block_type == block_type_paragraph:
+            html_node = paragraph_to_html_node(block)
+            block_nodes.append(html_node)
+        else:
+            raise ValueError("Invalid mardown block type")
+    return ParentNode(tag="div", children=block_nodes)
+            

@@ -17,6 +17,7 @@ from converters import (
     block_type_unordered_list,
     block_type_ordered_list,
 )
+from htmlnode import HTMLNode
 
 class TestConverter(unittest.TestCase):
     
@@ -241,8 +242,6 @@ class TestConverter(unittest.TestCase):
                         }
                         ```"""
         block_list3 = markdown_to_blocks(markdown3)
-        for block in block_list3:
-            print(block)
 
     def test_block_to_block_type_heading(self):
         block = "Heading"
@@ -334,6 +333,33 @@ class TestConverter(unittest.TestCase):
         block = "1. first item\n2. second item\n3. third item\n4. fourth item\n5. fifth item\n6. sixth item\n7. seventh item\n8. eighth item\n9. ninth item\n10. tenth item\n11. eleventh item"
         block_type = block_to_block_type(block)
         self.assertEqual(block_type_ordered_list, block_type)
+
+    def test_markdown_to_html_node(self):
+        markdown = """# This is a heading
+
+                      ## This is a subheading
+
+                        This is a paragraph of text. It has some **bold** and *italic* words inside of it.
+
+                        * This is the first list item in a list block
+                        * This is a list item
+                        * This is another list item
+
+                        1. This is an ordered list with an *italic* word
+                        2. this is another item in the list which has an ![image](https://boot.dev)
+                        3. this is the last item in the list
+
+                        > ### Trying to make a quote with a heading
+                        > This is a quote with a **bold** word
+                        >This is another part of the quote wich a link [boot.dev](https://boot.dev)
+                        > This is the last part of the quote
+
+                        ```
+                        func main() {
+                            print("hello")
+                        }
+                        ```"""
+        html_node = markdown_to_html_node(markdown)
 
     
 
