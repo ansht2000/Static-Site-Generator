@@ -17,7 +17,6 @@ from converters import (
     block_type_unordered_list,
     block_type_ordered_list,
 )
-from htmlnode import HTMLNode
 
 class TestConverter(unittest.TestCase):
     

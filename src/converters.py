@@ -1,3 +1,6 @@
+from leafnode import LeafNode
+from parentnode import ParentNode
+import re
 from textnode import (
     TextNode,
     text_type_text,
@@ -7,9 +10,6 @@ from textnode import (
     text_type_link,
     text_type_image,
 )
-from leafnode import LeafNode
-from parentnode import ParentNode
-import re
 
 block_type_paragraph = "paragraph"
 block_type_heading = "heading"
@@ -18,25 +18,39 @@ block_type_quote = "quote"
 block_type_unordered_list = "unordered_list"
 block_type_ordered_list = "ordered_list"
 
-def text_node_to_html_node(text_node: TextNode):
-    text_type = text_node.text_type
-    text = text_node.text
-    url = text_node.url
-    match text_type:
-        case "text":
-            return LeafNode(value=text)
-        case "bold":
-            return LeafNode(tag="b", value=text)
-        case "italic":
-            return LeafNode(tag="i", value=text)
-        case "code":
-            return LeafNode(tag="code", value=text)
-        case "link":
-            return LeafNode(tag="a", value=text, props={"href": url})
-        case "image":
-            return LeafNode(tag="img", value="", props={"src": url, "alt": text})
-        case _:
-            raise Exception("Invalid or unimplemented text node type")
+def generate_page(from_path, template_path, to_path):
+    print(f"Generating page from {from_path} to {to_path} using {template_path}")
+    with open(from_path) as md_file:
+        markdown = md_file.read()
+    # not strictly necessary but we don't want a dangling fd
+    md_file.close()
+    with open(template_path) as temp_file:
+        template = temp_file.read()
+    temp_file.close()
+    title = extract_title_markdown(markdown)
+    html_node = markdown_to_html_node(markdown)
+    html = html_node.to_html()
+    html_file = template.replace("{{ Title }}", title)
+    html_file = html_file.replace("{{ Content }}", html)
+    with open(to_path, mode="w") as index_html:
+        print(html_file, file=index_html)
+    index_html.close()
+    
+
+
+def extract_title_markdown(markdown):
+    header_one = re.findall(r"# (.*)", markdown)
+    if len(header_one) == 0:
+        raise Exception("Markdown file must have at least one top level header")
+    return header_one[0]
+
+def extract_markdown_images(text):
+    return re.findall(r"!\[(.*?)\]\((.*?)\)", text)
+
+def extract_markdown_links(text):
+    # (?<!!) is a negative lookbehind epxression to exclude
+    # captured exclamation marks in the returned list
+    return re.findall(r"(?<!!)\[(.*?)\]\((.*?)\)", text)
 
 # implementation using map and filter
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
@@ -58,14 +72,6 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
         )
         new_nodes.extend(list(filter(lambda x: x.text != "", text_nodes)))
     return new_nodes
-
-def extract_markdown_images(text):
-    return re.findall(r"!\[(.*?)\]\((.*?)\)", text)
-
-def extract_markdown_links(text):
-    # (?<!!) is a negative lookbehind epxression to exclude
-    # captured exclamation marks in the returned list
-    return re.findall(r"(?<!!)\[(.*?)\]\((.*?)\)", text)
 
 def split_nodes_image_link(old_nodes, type):
     new_nodes = []
@@ -100,6 +106,26 @@ def split_nodes_image_link(old_nodes, type):
             new_nodes.append(TextNode(node_text, text_type_text))
     return new_nodes
 
+def text_node_to_html_node(text_node: TextNode):
+    text_type = text_node.text_type
+    text = text_node.text
+    url = text_node.url
+    match text_type:
+        case "text":
+            return LeafNode(value=text)
+        case "bold":
+            return LeafNode(tag="b", value=text)
+        case "italic":
+            return LeafNode(tag="i", value=text)
+        case "code":
+            return LeafNode(tag="code", value=text)
+        case "link":
+            return LeafNode(tag="a", value=text, props={"href": url})
+        case "image":
+            return LeafNode(tag="img", value="", props={"src": url, "alt": text})
+        case _:
+            raise Exception("Invalid or unimplemented text node type")
+        
 def text_to_textnodes(text):
     node = [TextNode(text, text_type_text)]
     new_nodes = split_nodes_delimiter(node, "**", text_type_bold)
